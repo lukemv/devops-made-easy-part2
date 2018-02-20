@@ -1,15 +1,10 @@
 ---
 environments:
-  lab:
+  tutorial:
     account_id: 107546450088
     tags:
       Environment: "{environment}"
 
-stacks:
-  foo-bucket:
-    stack_name: "{environment}-wha-tutorial-bucket"
-    stack_yaml: "{:config_dir}/raw-stacks/bucket.yml"
-    params_yaml:
-      OrganisationalId: konfigu
-      Environment: "{environment}"
-      BucketName: "foobarbaz"
+bespin:
+  extra_files:
+  - network/bespin.yml

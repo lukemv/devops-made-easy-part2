@@ -1,0 +1,15 @@
+---
+plans:
+  network:
+  - network-vpc-base
+
+stacks:
+  network-vpc-base:
+    stack_yaml: "{:config_dir}/vpc/base.yml"
+    stack_name: "{environment}-network-vpc-base"
+    params_yaml:
+      Environment: XXX_ENVIRONMENT_XXX
+      VpcCidrRange: "10.223.0.0/16"
+      PublicAzCidrs: "10.223.1.0/24,10.223.2.0/24,10.223.3.0/24"
+    vars:
+      Environment: "{environment}"

@@ -1,0 +1,132 @@
+---
+Description: VPC - A VPC with 3 public facing subnets
+
+Parameters:
+  Environment:
+    Type: String
+  VpcCidrRange:
+    Type: String
+  PublicAzCidrs:
+    Type: String
+
+Resources:
+  Vpc:
+    Type: "AWS::EC2::VPC"
+    Properties:
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      CidrBlock: !Ref "VpcCidrRange"
+      Tags:
+      - Key: Name
+        Value: !Sub vpc-${Environment}
+
+  SubnetPublicAz1:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      AvailabilityZone: !Select [ 0, !GetAZs "" ]
+      CidrBlock: !Select [ 0, !Split [ ",", !Ref "PublicAzCidrs" ] ]
+      MapPublicIpOnLaunch: "true"
+      VpcId: !Ref Vpc
+      Tags:
+      - Key: Name
+        Value: !Sub subnet-${Environment}-public-az1
+
+  SubnetPublicAz2:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      AvailabilityZone: !Select [ 1, !GetAZs "" ]
+      CidrBlock: !Select [ 1, !Split [ ",", !Ref "PublicAzCidrs" ] ]
+      MapPublicIpOnLaunch: "true"
+      VpcId: !Ref Vpc
+      Tags:
+      - Key: Name
+        Value: !Sub subnet-${Environment}-public-az2
+
+  SubnetPublicAz3:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      AvailabilityZone: !Select [ 2, !GetAZs "" ]
+      CidrBlock: !Select [ 2, !Split [ ",", !Ref "PublicAzCidrs" ] ]
+      MapPublicIpOnLaunch: "true"
+      VpcId: !Ref Vpc
+      Tags:
+      - Key: Name
+        Value: !Sub subnet-${Environment}-public-az3
+
+  InternetGateway:
+    Type: "AWS::EC2::InternetGateway"
+    Properties:
+      Tags:
+      - Key: Name
+        Value: !Sub "internetgateway-${Environment}"
+
+  InternetGatewayVpcAttachment:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties:
+      VpcId: !Ref Vpc
+      InternetGatewayId: !Ref "InternetGateway"
+
+  RouteTablePublic:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+      - Key: Name
+        Value: "routetable-public-general"
+
+  RouteEntryPublicDefault:
+    Type: "AWS::EC2::Route"
+    DependsOn: InternetGatewayVpcAttachment
+    Properties:
+      RouteTableId: !Ref RouteTablePublic
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref InternetGateway
+
+  RTAPublicAz1:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref RouteTablePublic
+      SubnetId: !Ref SubnetPublicAz1
+
+  RTAPublicAz2:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref RouteTablePublic
+      SubnetId: !Ref SubnetPublicAz2
+
+  RTAPublicAz3:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref RouteTablePublic
+      SubnetId: !Ref SubnetPublicAz3
+
+Outputs:
+  VpcId:
+    Value: !Ref Vpc
+    Export:
+      Name: !Sub "${AWS::StackName}::VpcId"
+
+  SubnetIdsPublic:
+    Value: !Join
+    - ","
+    -
+      - !Ref SubnetPublicAz1
+      - !Ref SubnetPublicAz2
+      - !Ref SubnetPublicAz3
+    Export:
+      Name: !Sub "${AWS::StackName}::SubnetIdsPublic"
+
+  SubnetIdPublicAz1:
+    Value: !Ref SubnetPublicAz1
+    Export:
+      Name: !Sub "${AWS::StackName}::SubnetPublicAz1"
+
+  SubnetIdPublicAz2:
+    Value: !Ref SubnetPublicAz2
+    Export:
+      Name: !Sub "${AWS::StackName}::SubnetPublicAz2"
+
+  SubnetIdPublicAz3:
+    Value: !Ref SubnetPublicAz3
+    Export:
+      Name: !Sub "${AWS::StackName}::SubnetPublicAz3"
