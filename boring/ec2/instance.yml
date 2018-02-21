@@ -1,0 +1,53 @@
+---
+Description: EC2 - EC2 instances (boring) 
+
+Parameters:
+  InstanceProfile:
+    Type: String
+  ImageId:
+    Type: String
+  InstanceType:
+    Type: String
+  KeyName:
+    Type: String
+  SecurityGroups:
+    Type: List<String>
+  SubnetIds:
+    Type: List<String>
+
+Resources:
+  Instance01:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      IamInstanceProfile: !Ref InstanceProfile
+      ImageId: !Ref ImageId
+      InstanceInitiatedShutdownBehavior: stop
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      Monitoring: true
+      SecurityGroupIds: !Ref SecurityGroups
+      SubnetId: !Select [ 0, !Ref SubnetIds ]
+      UserData:
+        # yamllint disable
+        Fn::Base64: |
+          #!/bin/bash
+          sudo yum update -y
+          sudo yum install epel-release -y
+          sudo yum install nginx -y
+          sudo systemctl status nginx
+          sudo systemctl start nginx
+      Tags:
+      - Key: Name
+        Value: !Sub "${AWS::StackName}-01"
+
+
+Outputs:
+  Instance01AvailabilityZone:
+    Value: !GetAtt Instance01.AvailabilityZone
+    Export:
+      Name: !Sub "${AWS::StackName}::Instance01AvailabilityZone"
+
+  Instance01PrivateIp:
+    Value: !GetAtt Instance01.PrivateIp
+    Export:
+      Name: !Sub "${AWS::StackName}::Instance01PrivateIp"

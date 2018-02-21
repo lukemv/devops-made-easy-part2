@@ -1,0 +1,57 @@
+---
+Description: EC2 - Security groups (boring) 
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+
+Resources:
+  SecurityGroupEC2:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: Allows access to instances by group membership
+      VpcId: !Ref VpcId
+      Tags:
+      - Key: Name
+        Value: security-group-boring-ec2
+
+  SecurityGroupIP:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: Allows access to instances by CidrIp
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+      - CidrIp: 10.0.0.0/8 # Private Range
+        IpProtocol: -1
+      - CidrIp: 0.0.0.0/0 # OMG..
+        IpProtocol: -1
+      Tags:
+      - Key: Name
+        Value: security-group-boring-ip
+
+  SecurityGroupEC2Ingress:
+    Type: "AWS::EC2::SecurityGroupIngress"
+    Properties:
+      GroupId: !Ref SecurityGroupEC2
+      SourceSecurityGroupId: !Ref SecurityGroupEC2
+      IpProtocol: -1
+
+Outputs:
+  SecurityGroupEC2:
+    Value: !Ref SecurityGroupEC2
+    Export:
+      Name: !Sub "${AWS::StackName}::SecurityGroupEC2"
+
+  SecurityGroupIP:
+    Value: !Ref SecurityGroupIP
+    Export:
+      Name: !Sub "${AWS::StackName}::SecurityGroupIP"
+
+  SecurityGroups:
+    Value: !Join
+    - ","
+    -
+      - !Ref SecurityGroupEC2
+      - !Ref SecurityGroupIP
+    Export:
+      Name: !Sub "${AWS::StackName}::SecurityGroups"

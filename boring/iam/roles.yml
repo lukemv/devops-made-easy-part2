@@ -1,0 +1,50 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "IAM - Roles (boring)"
+
+Resources:
+
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: "/"
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - ec2.amazonaws.com
+          Action:
+          - sts:AssumeRole
+
+  PolicyLogs:
+    Type: "AWS::IAM::Policy"
+    Properties:
+      PolicyName: !Sub "${AWS::StackName}-policy-logs"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Action:
+          - "logs:CreateLogGroup"
+          - "logs:CreateLogStream"
+          - "logs:PutLogEvents"
+          - "logs:DescribeLogStreams"
+          Resource:
+          - arn:aws:logs:*:*:*
+      Roles:
+      - !Ref InstanceRole 
+
+  InstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      Path: /
+      Roles:
+      - !Ref InstanceRole
+      InstanceProfileName: !Sub "${AWS::StackName}"
+
+Outputs:
+  InstanceProfile:
+    Value: !Ref InstanceProfile
+    Export:
+      Name: !Sub "${AWS::StackName}::InstanceProfile"

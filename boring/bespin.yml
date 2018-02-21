@@ -1,0 +1,33 @@
+plans:
+  boring:
+  - boring-iam-roles
+  - boring-ec2-netsec
+  - boring-ec2-instance
+
+stacks:
+  boring-ec2-netsec:
+    stack_name: "{environment}-boring-ec2-netsec"
+    stack_yaml: "{:config_dir}/ec2/netsec.yml"
+    params_yaml:
+      VpcId: XXX_VPCID_XXX
+    vars:
+      VpcId: [ "{environment}-network-vpc-base", "VpcId" ]
+
+  boring-iam-roles:
+    stack_name: "{environment}-boring-iam-roles"
+    stack_yaml: "{:config_dir}/iam/roles.yml"
+
+  boring-ec2-instance:
+    stack_name: "{environment}-boring-ec2-instance"
+    stack_yaml: "{:config_dir}/ec2/instance.yml"
+    params_yaml:
+      ImageId: ami-b6bb47d4 # Centos 7
+      InstanceType: t2.micro
+      KeyName: "<ADDTHIS>"
+      InstanceProfile: XXX_INSTANCEPROFILE_XXX
+      SubnetIds: XXX_SUBNETIDS_XXX
+      SecurityGroups: XXX_SECURITYGROUPS_XXX
+    vars:
+      InstanceProfile: [ "{environment}-boring-iam-roles", "InstanceProfile" ]
+      SecurityGroups: [ "{environment}-boring-ec2-netsec", "SecurityGroups" ]
+      SubnetIds: [ "{environment}-network-vpc-base", "SubnetIdsPublic" ]
